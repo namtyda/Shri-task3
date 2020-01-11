@@ -50,6 +50,6 @@ declare namespace JsonToAst {
 
 declare function JsonToAst(json: string): JsonToAst.AstJsonEntity;
 
-declare module "json-to-ast" {
+declare module 'json-to-ast' {
     export = JsonToAst;
 }
