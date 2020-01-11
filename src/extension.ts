@@ -1,4 +1,4 @@
-import { readFileSync, readFile } from "fs";
+import { readFileSync } from "fs";
 import { join, resolve, basename } from "path";
 import { bemhtml } from "bem-xjst";
 
@@ -8,8 +8,7 @@ import {
     LanguageClientOptions,
     ServerOptions,
     TransportKind,
-    SettingMonitor,
-    DocumentColorRequest
+    SettingMonitor
 } from 'vscode-languageclient';
 
 const serverBundleRelativePath = join('out', 'server.js');
@@ -31,7 +30,7 @@ const createLanguageClient = (context: vscode.ExtensionContext): LanguageClient 
         debug: {
             module: serverModulePath,
             transport: TransportKind.ipc,
-            options: { execArgv: ['--inspect=6009', '--nolazy'] }
+            options: { execArgv: ['--nolazy', '--inspect=6009'] }
         }
     };
 
@@ -51,7 +50,7 @@ const getPreviewKey = (doc: vscode.TextDocument): string => doc.uri.path;
 
 const getMediaPath = (context: vscode.ExtensionContext) => vscode.Uri
     .file(context.extensionPath)
-    .with({ scheme: "resource"})
+    .with({ scheme: "vscode-resource"})
     .toString() + '/';
 
 const initPreviewPanel = (document: vscode.TextDocument) => {
@@ -69,10 +68,8 @@ const initPreviewPanel = (document: vscode.TextDocument) => {
 
     PANELS[key] = panel;
 
-    const e = panel.onDidDispose(() => 
-    {
+    panel.onDidDispose(() => {
         delete PANELS[key];
-        e.dispose()
     });
 
     return panel;
@@ -89,7 +86,7 @@ const updateContent = (doc: vscode.TextDocument, context: vscode.ExtensionContex
 
 
             panel.webview.html = previewHtml 
-                .replace(/{{\s+(\w+)\s+}}/g, (str, key) => {
+                .replace(/{{\s*(\w+)\s*}}/g, (str, key) => {
                     switch (key) {
                         case 'content':
                             return html;
