@@ -1,4 +1,5 @@
 import * as jsonToAst from 'json-to-ast';
+import '../vendor/linter';
 
 export type JsonAST = jsonToAst.AstJsonEntity | undefined;
 
@@ -8,13 +9,13 @@ export interface LinterProblem<TKey> {
 }
 
 export function makeLint<TProblemKey>(
-    json: string, 
+    json: string,
     validateProperty: (property: jsonToAst.AstProperty) => LinterProblem<TProblemKey>[],
     validateObject: (property: jsonToAst.AstObject) => LinterProblem<TProblemKey>[]
 ): LinterProblem<TProblemKey>[] {
 
     function walk(
-        node: jsonToAst.AstJsonEntity, 
+        node: jsonToAst.AstJsonEntity,
         cbProp: (property: jsonToAst.AstProperty) => void,
         cbObj: (property: jsonToAst.AstObject) => void
     ) {
@@ -26,7 +27,7 @@ export function makeLint<TProblemKey>(
                 break;
             case 'Object':
                 cbObj(node);
-    
+
                 node.children.forEach((property: jsonToAst.AstProperty) => {
                     cbProp(property);
                     walk(property.value, cbProp, cbObj);
@@ -35,16 +36,23 @@ export function makeLint<TProblemKey>(
         }
     }
 
-    function parseJson(json: string):JsonAST  {return jsonToAst(json); }
+    function parseJson(json: string): JsonAST { return jsonToAst(json); }
 
-    let errors: LinterProblem<TProblemKey>[] = [];
     const ast: JsonAST = parseJson(json);
+    let errors: LinterProblem<TProblemKey>[] = [];
 
     if (ast) {
-        walk(ast, 
-            (property: jsonToAst.AstProperty) => errors = errors.concat(...validateProperty(property)), 
+        walk(ast,
+            (property: jsonToAst.AstProperty) => errors = errors.concat(...validateProperty(property)),
             (obj: jsonToAst.AstObject) => errors = errors.concat(...validateObject(obj)));
     }
 
+    const linter = lint(json);
+    errors = errors.concat(linter.map(({ error, location }) => {
+        return {
+            key: error,
+            loc: location
+        } as LinterProblem<TProblemKey>;
+    }));
     return errors;
 }

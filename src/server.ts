@@ -36,15 +36,17 @@ function GetSeverity(key: RuleKeys): DiagnosticSeverity | undefined {
 
     switch (severity) {
         case Severity.Error:
-            return DiagnosticSeverity.Information;
+            return DiagnosticSeverity.Error;
         case Severity.Warning:
             return DiagnosticSeverity.Warning;
         case Severity.Information:
             return DiagnosticSeverity.Information;
         case Severity.Hint:
             return DiagnosticSeverity.Hint;
-        default:
+        case Severity.None:
             return undefined;
+        default:
+            return DiagnosticSeverity.Error;
     }
 }
 
@@ -57,7 +59,7 @@ function GetMessage(key: RuleKeys): string {
         return 'Uppercase properties are forbidden!';
     }
 
-    return `Unknown problem type '${key}'`;
+    return key;
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
