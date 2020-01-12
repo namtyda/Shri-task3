@@ -41,12 +41,6 @@ export function makeLint<TProblemKey>(
     const ast: JsonAST = parseJson(json);
     let errors: LinterProblem<TProblemKey>[] = [];
 
-    if (ast) {
-        walk(ast,
-            (property: jsonToAst.AstProperty) => errors = errors.concat(...validateProperty(property)),
-            (obj: jsonToAst.AstObject) => errors = errors.concat(...validateObject(obj)));
-    }
-
     const linter = lint(json);
     errors = errors.concat(linter.map(({ error, location }) => {
         return {
